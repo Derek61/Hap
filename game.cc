@@ -2,11 +2,12 @@
    Copyright (c) 2025 Derek B. Clegg
    All rights reserved. */
 
-#include <nyx/error.h>
+#include <hap/playing-cards.h>
 #include <nyx/command-line.h>
+#include <nyx/error.h>
 #include <cassert>
-#include <iostream>
-#include "playing-cards.h"
+#include <cstdlib>
+#include <print>
 
 using namespace nyx;
 using PlayingCard = hap::playing_card;
