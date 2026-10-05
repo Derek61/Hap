@@ -1,11 +1,14 @@
 /* hap/deck.h -*- mode: c++ -*-
-   Copyright (c) 2025 Derek B. Clegg
+   Copyright (c) 2025-2026 Derek B. Clegg
    All rights reserved. */
 
 #ifndef HAP_DECK_H_
 #define HAP_DECK_H_
 
 #include <hap/stack.h>
+#include <cstddef>
+#include <initializer_list>
+#include <iterator>
 #include <vector>
 
 namespace hap {
@@ -42,12 +45,12 @@ public:
   /* Discard `n' cards from the top of the deck. */
   void discard(size_t n);
 
-  /* Add a card to the bottom of the stack. */
+  /* Add a card to the bottom of the deck. */
   void add_to_bottom(Card c);
 
-  /* Add a stack of cards to the bottom of the stack. */
-  void add_to_bottom(stack<Card>&& stack);
-  void add_to_bottom(const stack<Card>& stack);
+  /* Add a stack of cards to the bottom of the deck. */
+  void add_to_bottom(stack<Card>&& cards);
+  void add_to_bottom(const stack<Card>& cards);
 
   /* Return the deck to its original state. */
   void reset();
@@ -60,18 +63,20 @@ public:
   auto end() const;
 
 private:
-  const std::vector<Card> cards;	// The set of all cards.
-  stack<Card> stack = { cards.begin(), cards.end() };
+  std::vector<Card> cards;	/* The set of all cards. */
+  stack<Card> undealt = { cards.begin(), cards.end() };
 };
 
 template<typename Iterator> deck(Iterator, Iterator) ->
   deck<typename std::iterator_traits<Iterator>::value_type>;
-  
+
 } /* namespace hap */
 
 /* Implementation. */
 
 #include <format>
+#include <string>
+#include <utility>
 
 template<typename Card>
 hap::deck<Card>::deck(const std::vector<Card>& cards)
@@ -103,70 +108,70 @@ template<typename Card>
 bool
 hap::deck<Card>::empty() const
 {
-  return stack.empty();
+  return undealt.empty();
 }
 
 template<typename Card>
 size_t
 hap::deck<Card>::remaining_cards() const
 {
-  return stack.count();
+  return undealt.count();
 }
 
 template<typename Card>
 Card
 hap::deck<Card>::top() const
 {
-  return stack.top();
+  return undealt.top();
 }
 
 template<typename Card>
 Card
 hap::deck<Card>::deal_one_card()
 {
-  return stack.deal_one_card();
+  return undealt.deal_one_card();
 }
 
 template<typename Card>
 hap::stack<Card>
 hap::deck<Card>::deal(size_t n)
 {
-  return stack.deal(n);
+  return undealt.deal(n);
 }
 
 template<typename Card>
 void
 hap::deck<Card>::discard(size_t n)
 {
-  stack.discard(n);
+  undealt.discard(n);
 }
 
 template<typename Card>
 void
 hap::deck<Card>::add_to_bottom(Card c)
 {
-  stack.add_to_bottom(c);
+  undealt.add_to_bottom(c);
 }
 
 template<typename Card>
 void
 hap::deck<Card>::add_to_bottom(hap::stack<Card>&& s)
 {
-  stack.add_to_bottom(std::move(s));
+  undealt.add_to_bottom(std::move(s));
 }
 
 template<typename Card>
 void
 hap::deck<Card>::add_to_bottom(const hap::stack<Card>& s)
 {
-  stack.add_to_bottom(s);
+  undealt.add_to_bottom(s);
 }
 
 template<typename Card>
 void
 hap::deck<Card>::reset()
 {
-  stack = { cards.begin(), cards.end() };
+  undealt = {cards.begin(), cards.end()};
 }
 
 template<typename Card>
@@ -174,21 +179,21 @@ void
 hap::deck<Card>::shuffle()
 {
   reset();
-  stack.shuffle();
+  undealt.shuffle();
 }
 
 template<typename Card>
 auto
 hap::deck<Card>::begin() const
 {
-  return stack.begin();
+  return undealt.begin();
 }
 
 template<typename Card>
 auto
 hap::deck<Card>::end() const
 {
-  return stack.end();
+  return undealt.end();
 }
 
 template<typename Card>
@@ -197,7 +202,7 @@ struct std::formatter<hap::deck<Card>> : std::formatter<std::string>
   auto format(const hap::deck<Card>& deck, auto& ctx) const
   {
     auto&& out = ctx.out();
-    if (deck.size() > 0) {
+    if (!deck.empty()) {
       auto t = deck.begin();
       format_to(out, "{}", *t++);
       while (t != deck.end())
