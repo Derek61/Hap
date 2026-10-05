@@ -12,19 +12,21 @@ namespace hap {
 class coin
 {
 public:
-  enum class Face : unsigned char { Heads, Tails };
+  enum Face : unsigned char { Heads, Tails };
 
   /* Create a coin showing heads. */
   coin() = default;
 
-  /* Toss the coin and return the face that lands up. */
+  /* Toss the coin and return the face that's up. */
   Face toss();
 
-  /* Return the face showing. */
+  /* Return the face showing after a flip. */
   Face face() const;
 
-  /* Return true if the coin shows heads (or tails); false otherwise. */
+  /* Return true if the coin shows heads; false otherwise. */
   bool heads() const;
+
+  /* Return true if the coin shows tails; false otherwise. */
   bool tails() const;
 
 private:
