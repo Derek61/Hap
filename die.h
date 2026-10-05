@@ -5,11 +5,16 @@
 #ifndef HAP_DIE_H_
 #define HAP_DIE_H_
 
+#if HAP_USE_GENERATOR
 #include <hap/generator.h>
+#else
+#include <nyx/uniform-integer.h>
+#endif
 
 namespace hap {
 
-class die {
+class die
+{
 public:
   /* Create a 6-sided die. */
   die() = default;
@@ -29,7 +34,11 @@ public:
 private:
   unsigned int v = 0;
   const unsigned int s = 6;
+#if HAP_USE_GENERATOR
   std::uniform_int_distribution<unsigned int> distribution{1, s};
+#else
+  nyx::uniform_integer<unsigned int> d{1, 6};
+#endif
 };
 
 } /* namespace hap */
@@ -53,7 +62,11 @@ inline
 unsigned int
 hap::die::roll()
 {
+#if HAP_USE_GENERATOR
   v = distribution(generator);
+#else
+  v = d();
+#endif
   return v;
 }
 

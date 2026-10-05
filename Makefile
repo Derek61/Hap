@@ -4,7 +4,7 @@
 
 INSTALLED_LIBRARIES := hap
 
-C++_FLAGS := -Wno-nonportable-include-path
+C++_FLAGS := -Wno-nonportable-include-path -DHAP_USE_GENERATOR=0
 
 PRODUCTS := game
 
