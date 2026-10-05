@@ -3,6 +3,7 @@
    All rights reserved. */
 
 #include <hap/playing-cards.h>
+#include <cstdlib>
 
 namespace hap {
 
@@ -26,7 +27,7 @@ R(unsigned int r)
   case 12: return Queen;
   case 13: return King;
   case 14: return Ace;
-  default: abort();
+  default: std::abort();
   }
 }
 
