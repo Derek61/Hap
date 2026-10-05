@@ -1,37 +1,34 @@
 /* hap/coin.h -*- mode: c++ -*-
-   Copyright (c) 2025 Derek B Clegg
+   Copyright (c) 2025-2026 Derek B. Clegg
    All rights reserved. */
 
 #ifndef HAP_COIN_H_
 #define HAP_COIN_H_
 
-#if HAP_USE_GENERATOR
-#include <hap/generator.h>
-#else
-#include <nyx/uniform-boolean.h>
-#endif
+#include <hap/random.h>
 
 namespace hap {
 
 class coin
 {
 public:
-  enum Face : unsigned char { Heads, Tails };
+  enum class Face : unsigned char { Heads, Tails };
 
+  /* Create a coin showing heads. */
   coin() = default;
 
+  /* Toss the coin and return the face that lands up. */
   Face toss();
 
+  /* Return the face showing. */
+  Face face() const;
+
+  /* Return true if the coin shows heads (or tails); false otherwise. */
   bool heads() const;
   bool tails() const;
 
 private:
-  Face face = Heads;
-#if HAP_USE_GENERATOR
-  std::uniform_int_distribution<unsigned char> distribution{Heads, Tails};
-#else
-  nyx::uniform_boolean b;
-#endif
+  Face f = Face::Heads;
 };
 
 } /* namespace hap */
@@ -41,24 +38,26 @@ private:
 inline auto
 hap::coin::toss() -> Face
 {
-#if HAP_USE_GENERATOR
-  face = static_cast<Face>(distribution(generator));
-#else
-  face = b() ? Heads : Tails;
-#endif
-  return face;
+  f = internal::next_bit() ? Face::Heads : Face::Tails;
+  return f;
+}
+
+inline auto
+hap::coin::face() const -> Face
+{
+  return f;
 }
 
 inline bool
 hap::coin::heads() const
 {
-  return face == Heads;
+  return f == Face::Heads;
 }
 
 inline bool
 hap::coin::tails() const
 {
-  return face == Tails;
+  return f == Face::Tails;
 }
 
 #endif /* HAP_COIN_H_ */

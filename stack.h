@@ -1,5 +1,5 @@
 /* hap/stack.h -*- mode: c++ -*-
-   Copyright (c) 2025 Derek B. Clegg
+   Copyright (c) 2025-2026 Derek B. Clegg
    All rights reserved. */
 
 #ifndef HAP_STACK_H_
@@ -8,7 +8,9 @@
 /* A stack is a collection of some number of cards. The number of cards may
    change as cards are drawn or discarded. */
 
+#include <cstddef>
 #include <deque>
+#include <initializer_list>
 
 namespace hap {
 
@@ -47,15 +49,15 @@ public:
   void add_to_top(Card c);
 
   /* Add a stack of cards to the top of the stack. */
-  void add_to_top(stack&& stack);
-  void add_to_top(const stack& stack);
+  void add_to_top(stack&& cards);
+  void add_to_top(const stack& cards);
 
   /* Add a card to the bottom of the stack. */
   void add_to_bottom(Card c);
 
   /* Add a stack of cards to the bottom of the stack. */
-  void add_to_bottom(stack&& stack);
-  void add_to_bottom(const stack& stack);
+  void add_to_bottom(stack&& cards);
+  void add_to_bottom(const stack& cards);
 
   /* Return the card at position `k'. The top of the stack is 0. */
   Card operator[](size_t k) const;
@@ -79,14 +81,14 @@ private:
 
 /* Implementation. */
 
-#include <hap/generator.h>
+#include <hap/random.h>
 #include <nyx/exception.h>
 #include <algorithm>
 #include <iterator>
 
 template<typename Card>
-hap::stack<Card>::stack(const std::initializer_list<Card>& cards)
-  : stack{cards.begin(), cards.end()}
+hap::stack<Card>::stack(const std::initializer_list<Card>& s)
+  : stack{s.begin(), s.end()}
 {
 }
 
@@ -171,17 +173,17 @@ hap::stack<Card>::add_to_top(Card c)
 
 template<typename Card>
 void
-hap::stack<Card>::add_to_top(stack&& stack)
+hap::stack<Card>::add_to_top(stack&& s)
 {
-  std::move(stack.rbegin(), stack.rend(), std::front_inserter(cards));
-  stack.discard_all();
+  std::move(s.cards.rbegin(), s.cards.rend(), std::front_inserter(cards));
+  s.discard_all();
 }
 
 template<typename Card>
 void
-hap::stack<Card>::add_to_top(const stack& stack)
+hap::stack<Card>::add_to_top(const stack& s)
 {
-  std::copy(stack.rbegin(), stack.rend(), std::front_inserter(cards));
+  std::copy(s.rbegin(), s.rend(), std::front_inserter(cards));
 }
 
 template<typename Card>
@@ -193,17 +195,17 @@ hap::stack<Card>::add_to_bottom(Card c)
 
 template<typename Card>
 void
-hap::stack<Card>::add_to_bottom(stack&& stack)
+hap::stack<Card>::add_to_bottom(stack&& s)
 {
-  std::move(stack.begin(), stack.end(), std::back_inserter(cards));
-  stack.discard_all();
+  std::move(s.cards.begin(), s.cards.end(), std::back_inserter(cards));
+  s.discard_all();
 }
 
 template<typename Card>
 void
-hap::stack<Card>::add_to_bottom(const stack& stack)
+hap::stack<Card>::add_to_bottom(const stack& s)
 {
-  std::copy(stack.begin(), stack.end(), std::back_inserter(cards));
+  std::copy(s.begin(), s.end(), std::back_inserter(cards));
 }
 
 template<typename Card>
@@ -219,7 +221,7 @@ template<typename Card>
 void
 hap::stack<Card>::shuffle()
 {
-  std::shuffle(cards.begin(), cards.end(), generator);
+  internal::shuffle(cards.begin(), cards.end());
 }
 
 template<typename Card>
