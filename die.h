@@ -1,15 +1,12 @@
 /* hap/die.h -*- mode: c++ -*-
-   Copyright (c) 2025 Derek B Clegg
+   Copyright (c) 2025-2026 Derek B. Clegg
    All rights reserved. */
 
 #ifndef HAP_DIE_H_
 #define HAP_DIE_H_
 
-#if HAP_USE_GENERATOR
-#include <hap/generator.h>
-#else
-#include <nyx/uniform-integer.h>
-#endif
+#include <hap/random.h>
+#include <nyx/utility.h>
 
 namespace hap {
 
@@ -19,26 +16,22 @@ public:
   /* Create a 6-sided die. */
   die() = default;
 
-  /* Create an n-sided die. */
-  die(unsigned int sides);
+  /* Create an `n'-sided die. `n' must be positive. */
+  explicit die(unsigned int n);
 
-  /* Return the number of sides for this die. */
+  /* Return the number of sides of this die. */
   unsigned int sides() const;
 
   /* Roll the die and return its value. */
   unsigned int roll();
 
-  /* Roll the current value of the die. */
+  /* Return the value of the last roll, or 0 if the die hasn't been
+     rolled. */
   unsigned int value() const;
 
 private:
-  unsigned int v = 0;
-  const unsigned int s = 6;
-#if HAP_USE_GENERATOR
-  std::uniform_int_distribution<unsigned int> distribution{1, s};
-#else
-  nyx::uniform_integer<unsigned int> d{1, 6};
-#endif
+  unsigned int sides_ = 6;		/* Number of sides. */
+  unsigned int value_ = 0;		/* Value of the last roll. */
 };
 
 } /* namespace hap */
@@ -46,35 +39,29 @@ private:
 /* Implementation. */
 
 inline
-hap::die::die(unsigned int sides)
-  : s{sides}
+hap::die::die(unsigned int n)
+  : sides_{n}
 {
+  NYX_ASSERT(n > 0);
 }
 
-inline
-unsigned int
+inline unsigned int
 hap::die::sides() const
 {
-  return s;
+  return sides_;
 }
 
-inline
-unsigned int
+inline unsigned int
 hap::die::roll()
 {
-#if HAP_USE_GENERATOR
-  v = distribution(generator);
-#else
-  v = d();
-#endif
-  return v;
+  value_ = 1 + static_cast<unsigned int>(internal::uniform(sides_));
+  return value_;
 }
 
-inline
-unsigned int
+inline unsigned int
 hap::die::value() const
 {
-  return v;
+  return value_;
 }
 
 #endif /* HAP_DIE_H_ */
