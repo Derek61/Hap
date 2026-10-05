@@ -1,112 +1,175 @@
 /* hap/dice.h -*- mode: c++ -*-
-   Copyright (c) 2025 Derek B Clegg
+   Copyright (c) 2025-2026 Derek B. Clegg
    All rights reserved. */
 
 #ifndef HAP_DICE_H_
 #define HAP_DICE_H_
 
 #include <hap/die.h>
-#include <vector>
+#include <nyx/static-vector.h>
+#include <cstddef>
 
 namespace hap {
 
-class dice {
-public:
-  /* Create a set of dice. The number of sides is the default for a single
-     die. */
-  dice(unsigned int count);
+/* A set of dice. */
 
-  /* Create a set of n-sided dice, where `sides' specifies the number of
-     sides. */
-  dice(unsigned int count, unsigned int sides);
+class dice
+{
+public:
+  /* The largest number of dice in a set. */
+  static constexpr size_t capacity = 32;
+
+  /* Create a set of `count' 6-sided dice. Throw `std::bad_alloc' if `count'
+     exceeds `capacity'. */
+  explicit dice(size_t count);
+
+  /* Create a set of `count' dice, each with `sides' sides. Throw
+     `std::bad_alloc' if `count' exceeds `capacity'. */
+  dice(size_t count, unsigned int sides);
 
   /* Return the number of dice in this set. */
-  unsigned int count() const;
-  
+  size_t count() const;
+
   /* Roll all the dice and return the sum. */
   unsigned int roll();
 
-  /* Roll the sum of the current state of the dice. */
+  /* Return the sum of the dice's current values. */
   unsigned int sum() const;
+
+  /* Return the die with the lowest value. If several dice share the same
+     value, return the first one. */
+  die& lowest();
+  const die& lowest() const;
+
+  /* Return the die with the highest value. If several dice share the same
+     value, return the first one. */
+  die& highest();
+  const die& highest() const;
+
+  /* Return die `k'. */
+  die& operator[](size_t k);
+  const die& operator[](size_t k) const;
 
   /* Iterate through all the dice in the set. */
   auto begin();
   auto end();
-
   auto begin() const;
   auto end() const;
 
 private:
-  unsigned int s = 0;
-  std::vector<die> set;
+  nyx::static_vector<die, capacity> set;
 };
 
 } /* namespace hap */
 
 /* Implementation. */
 
+#include <nyx/utility.h>
+#include <algorithm>
+
 inline
-hap::dice::dice(unsigned int count)
-  : set{count, {}}
+hap::dice::dice(size_t count)
+  : set(count)
 {
 }
 
 inline
-hap::dice::dice(unsigned int count, unsigned int sides)
-  : set{count, {sides}}
+hap::dice::dice(size_t count, unsigned int sides)
+  : set(count, die{sides})
 {
 }
 
-inline
-unsigned int
+inline size_t
 hap::dice::count() const
 {
-  return static_cast<unsigned int>(set.size());
+  return set.size();
 }
 
-inline
-unsigned int
+inline unsigned int
 hap::dice::roll()
 {
-  s = 0;
-  for (auto& die : set)
-    s += die.roll();
-  return s;
+  for (auto& d : set)
+    d.roll();
+  return sum();
 }
 
-inline
-unsigned int
+inline unsigned int
 hap::dice::sum() const
 {
+  unsigned int s = 0;
+  for (const auto& d : set)
+    s += d.value();
   return s;
 }
 
-inline
-auto
+/* std::ranges::min_element returns the first of equal elements. */
+
+inline auto
+hap::dice::lowest() -> die&
+{
+  NYX_PRECONDITION(!set.empty());
+  return *std::ranges::min_element(set, {}, &die::value);
+}
+
+inline auto
+hap::dice::lowest() const -> const die&
+{
+  NYX_PRECONDITION(!set.empty());
+  return *std::ranges::min_element(set, {}, &die::value);
+}
+
+/* std::ranges::max_element returns the first of equal elements. */
+
+inline auto
+hap::dice::highest() -> die&
+{
+  NYX_PRECONDITION(!set.empty());
+  return *std::ranges::max_element(set, {}, &die::value);
+}
+
+inline auto
+hap::dice::highest() const -> const die&
+{
+  NYX_PRECONDITION(!set.empty());
+  return *std::ranges::max_element(set, {}, &die::value);
+}
+
+inline auto
+hap::dice::operator[](size_t k) -> die&
+{
+  NYX_PRECONDITION(k < set.size());
+  return set[k];
+}
+
+inline auto
+hap::dice::operator[](size_t k) const -> const die&
+{
+  NYX_PRECONDITION(k < set.size());
+  return set[k];
+}
+
+inline auto
 hap::dice::begin()
 {
   return set.begin();
 }
 
-inline
-auto
+inline auto
 hap::dice::end()
 {
   return set.end();
 }
 
-inline
-auto
+inline auto
 hap::dice::begin() const
 {
-  return set.cbegin();
+  return set.begin();
 }
 
-inline
-auto
+inline auto
 hap::dice::end() const
 {
-  return set.cend();
+  return set.end();
 }
 
 #endif /* HAP_DICE_H_ */
