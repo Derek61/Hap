@@ -63,8 +63,8 @@ public:
   auto end() const;
 
 private:
-  std::vector<Card> cards;	/* The set of all cards. */
-  stack<Card> undealt = { cards.begin(), cards.end() };
+  std::vector<Card> cards_;	/* The set of all cards. */
+  stack<Card> undealt_ = { cards_.begin(), cards_.end() };
 };
 
 template<typename Iterator> deck(Iterator, Iterator) ->
@@ -93,7 +93,7 @@ hap::deck<Card>::deck(const std::initializer_list<Card>& cards)
 template<typename Card>
 template<typename Iterator>
 hap::deck<Card>::deck(Iterator begin, Iterator end)
-  : cards{begin, end}
+  : cards_{begin, end}
 {
 }
 
@@ -101,77 +101,77 @@ template<typename Card>
 size_t
 hap::deck<Card>::size() const
 {
-  return cards.size();
+  return cards_.size();
 }
 
 template<typename Card>
 bool
 hap::deck<Card>::empty() const
 {
-  return undealt.empty();
+  return undealt_.empty();
 }
 
 template<typename Card>
 size_t
 hap::deck<Card>::remaining_cards() const
 {
-  return undealt.count();
+  return undealt_.count();
 }
 
 template<typename Card>
 Card
 hap::deck<Card>::top() const
 {
-  return undealt.top();
+  return undealt_.top();
 }
 
 template<typename Card>
 Card
 hap::deck<Card>::deal_one_card()
 {
-  return undealt.deal_one_card();
+  return undealt_.deal_one_card();
 }
 
 template<typename Card>
 hap::stack<Card>
 hap::deck<Card>::deal(size_t n)
 {
-  return undealt.deal(n);
+  return undealt_.deal(n);
 }
 
 template<typename Card>
 void
 hap::deck<Card>::discard(size_t n)
 {
-  undealt.discard(n);
+  undealt_.discard(n);
 }
 
 template<typename Card>
 void
 hap::deck<Card>::add_to_bottom(Card c)
 {
-  undealt.add_to_bottom(c);
+  undealt_.add_to_bottom(c);
 }
 
 template<typename Card>
 void
 hap::deck<Card>::add_to_bottom(hap::stack<Card>&& s)
 {
-  undealt.add_to_bottom(std::move(s));
+  undealt_.add_to_bottom(std::move(s));
 }
 
 template<typename Card>
 void
 hap::deck<Card>::add_to_bottom(const hap::stack<Card>& s)
 {
-  undealt.add_to_bottom(s);
+  undealt_.add_to_bottom(s);
 }
 
 template<typename Card>
 void
 hap::deck<Card>::reset()
 {
-  undealt = {cards.begin(), cards.end()};
+  undealt_ = { cards_.begin(), cards_.end() };
 }
 
 template<typename Card>
@@ -179,21 +179,21 @@ void
 hap::deck<Card>::shuffle()
 {
   reset();
-  undealt.shuffle();
+  undealt_.shuffle();
 }
 
 template<typename Card>
 auto
 hap::deck<Card>::begin() const
 {
-  return undealt.begin();
+  return undealt_.begin();
 }
 
 template<typename Card>
 auto
 hap::deck<Card>::end() const
 {
-  return undealt.end();
+  return undealt_.end();
 }
 
 template<typename Card>

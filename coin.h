@@ -30,7 +30,7 @@ public:
   bool tails() const;
 
 private:
-  Face f = Face::Heads;
+  Face face_ = Face::Heads;
 };
 
 } /* namespace hap */
@@ -40,26 +40,26 @@ private:
 inline auto
 hap::coin::toss() -> Face
 {
-  f = internal::next_bit() ? Face::Heads : Face::Tails;
-  return f;
+  face_ = internal::next_bit() ? Face::Heads : Face::Tails;
+  return face_;
 }
 
 inline auto
 hap::coin::face() const -> Face
 {
-  return f;
+  return face_;
 }
 
 inline bool
 hap::coin::heads() const
 {
-  return f == Face::Heads;
+  return face_ == Face::Heads;
 }
 
 inline bool
 hap::coin::tails() const
 {
-  return f == Face::Tails;
+  return face_ == Face::Tails;
 }
 
 #endif /* HAP_COIN_H_ */
