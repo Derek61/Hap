@@ -111,32 +111,31 @@ hap::estimator::estimate(uint64_t trials, const Scenario& scenario) -> result
   }
 
   /* Divide the trials into `n' blocks whose sizes differ by at most 1. The
-     workers join when `workers' is destroyed, at the end of the block, or
-     earlier if creating a thread throws. */
+     workers join when `workers' is destroyed or earlier if creating a
+     thread throws. */
+
   std::vector<uint64_t> successes(n);
-  std::vector<std::exception_ptr> errors(n);
+  std::vector<std::exception_ptr> exceptions(n);
   {
     std::vector<std::jthread> workers;
-    workers.reserve(n);
     const auto size = trials / n;
     const auto extra = trials % n;
     for (uint64_t k = 0, first = 0; k < n; ++k) {
       const auto last = first + size + (k < extra ? 1 : 0);
-      workers.emplace_back([&, k, first, last]
-      {
+      workers.emplace_back([&, k, first, last] {
 	try {
 	  successes[k] = run_trials(scenario, s, first, last);
 	} catch (...) {
-	  errors[k] = std::current_exception();
+	  exceptions[k] = std::current_exception();
 	}
       });
       first = last;
     }
   }
-  for (const auto& e : errors)
-    if (e)
-      std::rethrow_exception(e);
-
+  for (const auto& exception : exceptions) {
+    if (exception != nullptr)
+      std::rethrow_exception(exception);
+  }
   uint64_t total = 0;
   for (auto k : successes)
     total += k;
@@ -149,8 +148,7 @@ hap::estimator::estimate(uint64_t trials, const Scenario& scenario) -> result
 template<typename Scenario>
 uint64_t
 hap::estimator::run_trials(const Scenario& scenario,
-			   const internal::seed_state& s, uint64_t first,
-			   uint64_t last)
+  const internal::seed_state& s, uint64_t first, uint64_t last)
 {
   uint64_t successes = 0;
   for (auto k = first; k != last; ++k) {
