@@ -1,5 +1,5 @@
 /* hap/playing-cards.h -*- mode: c++ -*-
-   Copyright (c) 2025 Derek B. Clegg
+   Copyright (c) 2025-2026 Derek B. Clegg
    All rights reserved. */
 
 #ifndef HAP_PLAYING_CARDS_H_
@@ -16,19 +16,20 @@ public:
     Joker = 0, Two = 2, Three = 3, Four = 4, Five = 5, Six = 6, Seven = 7,
     Eight = 8, Nine = 9, Ten = 10, Jack = 11, Queen = 12, King = 13, Ace = 14
   };
-  enum Suit : unsigned char { Bicycle, Diamonds, Clubs, Hearts, Spades };
+  enum Suit : unsigned char {
+    Bicycle, Diamonds, Clubs, Hearts, Spades
+  };
 
   constexpr playing_card(Rank rank, Suit suit);
 
   constexpr Rank rank() const;
   constexpr Suit suit() const;
 
-  constexpr std::strong_ordering operator<=>(const playing_card& card) const
-    = default;
+  constexpr auto operator<=>(const playing_card& card) const = default;
 
 private:
-  Rank r = Joker;
-  Suit s = Bicycle;
+  Rank rank_ = Joker;
+  Suit suit_ = Bicycle;
 };
 
 using hand = stack<playing_card>;
@@ -41,20 +42,20 @@ deck<playing_card> playing_cards();
 
 constexpr
 hap::playing_card::playing_card(Rank rank, Suit suit)
-  : r{rank}, s{suit}
+  : rank_{rank}, suit_{suit}
 {
 }
 
 constexpr auto
 hap::playing_card::rank() const -> Rank
 {
-  return r;
+  return rank_;
 }
 
 constexpr auto
 hap::playing_card::suit() const -> Suit
 {
-  return s;
+  return suit_;
 }
 
 template<>
