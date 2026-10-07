@@ -1,0 +1,91 @@
+# check-common
+# Copyright (c) 2026 Derek B. Clegg
+# All rights reserved.
+
+# Shared code for the check scripts. A script sets `description' to a
+# phrase such as "Run tests for argv parsing.", sources this file, prints
+# its "Checking ..." line with `checking', runs its checks with
+# `check_output', and ends with `finish'.
+
+program="${0##*/}"
+
+usage ()
+{
+  cat <<EOF
+Usage: $program [OPTIONS...]
+$description
+Options:
+  --verbose, -v      Provide verbose messages about each action taken.
+  --help             Print this usage message.
+EOF
+}
+
+verbose=no
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    -v | --verbose)
+      verbose=yes
+      ;;
+    --help)
+      usage
+      exit 0
+      ;;
+    -*)
+      echo "$program: unknown option: $1" 1>&2
+      exit 1
+      ;;
+    *)
+      echo "$program: invalid number of arguments." 1>&2
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+# The exit status: 1 if any check fails.
+status=0
+
+# Print the "Checking ..." line to stderr, as the test programs do.
+
+checking ()
+{
+  echo "Checking $*" 1>&2
+}
+
+# check_output [--status N] COMMAND [ARGS...]
+#
+# Run COMMAND with stdin from /dev/null and stderr merged into stdout, and
+# compare its output with the expected output read from stdin. The check
+# fails if the output differs, or if the exit status isn't N (default 0).
+# A command line that needs the shell's quoting can be run as
+# `check_output eval "..."'.
+
+check_output ()
+{
+  local expected_status=0
+  if [ "$1" = "--status" ]; then
+    expected_status="$2"
+    shift 2
+  fi
+  [[ "$verbose" = "yes" ]] && echo "$*" 1>&2
+
+  local output actual_status
+  output="$(mktemp)" || exit 1
+  "$@" > "$output" 2>&1 < /dev/null
+  actual_status=$?
+  diff -u "$output" - || status=1
+  rm -f "$output"
+  if [ "$actual_status" -ne "$expected_status" ]; then
+    echo "$program: $*: exit status $actual_status, expected" \
+      "$expected_status." 1>&2
+    status=1
+  fi
+}
+
+# Exit with the overall status.
+
+finish ()
+{
+  exit $status
+}

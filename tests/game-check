@@ -1,0 +1,46 @@
+#!/bin/bash
+#
+# game-check
+# Copyright (c) 2026 Derek B. Clegg
+# All rights reserved.
+
+# Run tests for the card game demonstration.
+
+description='Run tests for the card game demonstration.'
+. "$(dirname "${BASH_SOURCE[0]}")/check-common"
+
+checking "the card game demonstration."
+
+# Hearts and diamonds are printed in red.
+red=$'\e[38;5;124m'
+normal=$'\e[0m'
+
+# The deck isn't shuffled until after the last line is printed, so the
+# output is always the same. The "Remaining cards" line ends with a space.
+
+check_output game <<EOF
+Deal 1 card:
+${red}2♦︎${normal}
+Deal 7 cards:
+[2♣︎, ${red}2♥︎${normal}, 2♠︎, ${red}3♦︎${normal}, 3♣︎, ${red}3♥︎${normal}, 3♠︎]
+Discard top 3 cards from this hand:
+[${red}3♦︎${normal}, 3♣︎, ${red}3♥︎${normal}, 3♠︎]
+Deal 7 more cards:
+[${red}4♦︎${normal}, 4♣︎, ${red}4♥︎${normal}, 4♠︎, ${red}5♦︎${normal}, 5♣︎, ${red}5♥︎${normal}]
+Deal 7 more cards:
+[5♠︎, ${red}6♦︎${normal}, 6♣︎, ${red}6♥︎${normal}, 6♠︎, ${red}7♦︎${normal}, 7♣︎]
+Deal 3 cards from this hand:
+[5♠︎, ${red}6♦︎${normal}, 6♣︎] -- [${red}6♥︎${normal}, 6♠︎, ${red}7♦︎${normal}, 7♣︎]
+Add the 3 cards to the top of this hand:
+[] -- [5♠︎, ${red}6♦︎${normal}, 6♣︎, ${red}6♥︎${normal}, 6♠︎, ${red}7♦︎${normal}, 7♣︎]
+Deal 7 more cards:
+[${red}7♥︎${normal}, 7♠︎, ${red}8♦︎${normal}, 8♣︎, ${red}8♥︎${normal}, 8♠︎, ${red}9♦︎${normal}]
+Deal 3 cards from this hand:
+[${red}7♥︎${normal}, 7♠︎, ${red}8♦︎${normal}] -- [8♣︎, ${red}8♥︎${normal}, 8♠︎, ${red}9♦︎${normal}]
+Add the 3 cards to the bottom of this hand:
+[] -- [8♣︎, ${red}8♥︎${normal}, 8♠︎, ${red}9♦︎${normal}, ${red}7♥︎${normal}, 7♠︎, ${red}8♦︎${normal}]
+Remaining cards:
+9♣︎ ${red}9♥︎${normal} 9♠︎ ${red}T♦︎${normal} T♣︎ ${red}T♥︎${normal} T♠︎ ${red}J♦︎${normal} J♣︎ ${red}J♥︎${normal} J♠︎ ${red}Q♦︎${normal} Q♣︎ ${red}Q♥︎${normal} Q♠︎ ${red}K♦︎${normal} K♣︎ ${red}K♥︎${normal} K♠︎ ${red}A♦︎${normal} A♣︎ ${red}A♥︎${normal} A♠︎ 
+EOF
+
+finish

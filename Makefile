@@ -6,11 +6,6 @@ INSTALLED_LIBRARIES := hap
 
 C++_FLAGS := -Wno-nonportable-include-path
 
-PRODUCTS := game reroll
-
-game[LIBS] = -lhap -lnyx
-reroll[LIBS] = -lhap -lnyx
-
 hap[HEADERS] := coin.h deck.h dice.h die.h estimate.h playing-cards.h	    \
   random.h stack.h
 

@@ -1,0 +1,55 @@
+#!/bin/bash
+#
+# reroll-check
+# Copyright (c) 2026 Derek B. Clegg
+# All rights reserved.
+
+# Run tests for the reroll simulation.
+
+description='Run tests for the reroll simulation.'
+. "$(dirname "${BASH_SOURCE[0]}")/check-common"
+
+checking "the reroll simulation."
+
+# With a fixed seed the estimates are repeatable, and the same on one thread
+# as on several, whether or not the threads divide the trials evenly.
+
+check_output reroll --seed 1 --trials 100000 --threads 4 <<EOF
+Seed: 1
+ 1 threads: 0.418760 ± 0.001560
+ 4 threads: 0.418760 ± 0.001560
+Exact:      0.416667
+EOF
+
+check_output reroll --seed 1 --trials 100000 --threads 3 <<EOF
+Seed: 1
+ 1 threads: 0.418760 ± 0.001560
+ 3 threads: 0.418760 ± 0.001560
+Exact:      0.416667
+EOF
+
+check_output reroll -s 2 -n 1000003 -t 7 <<EOF
+Seed: 2
+ 1 threads: 0.417070 ± 0.000493
+ 7 threads: 0.417070 ± 0.000493
+Exact:      0.416667
+EOF
+
+# Invalid values are rejected.
+
+check_output --status 1 reroll --trials 0 <<EOF
+reroll: invalid value for ‘--trials’ option: 0.
+reroll: Try ‘reroll --help’ for more information.
+EOF
+
+check_output --status 1 reroll --threads x <<EOF
+reroll: invalid value for ‘--threads’ option: x.
+reroll: Try ‘reroll --help’ for more information.
+EOF
+
+check_output --status 1 reroll -s -5 <<EOF
+reroll: invalid value for ‘-s’ option: -5.
+reroll: Try ‘reroll --help’ for more information.
+EOF
+
+finish
