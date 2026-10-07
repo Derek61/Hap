@@ -9,6 +9,7 @@
 #include <cstddef>
 #include <initializer_list>
 #include <iterator>
+#include <ranges>
 #include <vector>
 
 namespace hap {
@@ -71,6 +72,12 @@ template<typename Iterator> deck(Iterator, Iterator) ->
   deck<typename std::iterator_traits<Iterator>::value_type>;
 
 } /* namespace hap */
+
+/* A deck is a range of its undealt cards, but its size() is the number of
+   all its cards, so it must not be treated as a sized range. */
+
+template<typename Card>
+constexpr bool std::ranges::disable_sized_range<hap::deck<Card>> = true;
 
 /* Implementation. */
 

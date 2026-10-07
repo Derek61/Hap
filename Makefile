@@ -8,8 +8,8 @@ C++_FLAGS := -Wno-nonportable-include-path
 
 PRODUCTS := game reroll
 
-game[LIBS] = hap -lnyx
-reroll[LIBS] = hap -lnyx
+game[LIBS] = -lhap -lnyx
+reroll[LIBS] = -lhap -lnyx
 
 hap[HEADERS] := coin.h deck.h dice.h die.h estimate.h playing-cards.h	    \
   random.h stack.h
@@ -19,7 +19,7 @@ hap[SRCS] := coin.cc deck.cc dice.cc die.cc estimate.cc playing-cards.cc   \
 
 hap[LIBS] := -lnyx
 
-# TEST_DIR := tests
+TEST_DIR := tests
 
 include makefiles/base.make
 
