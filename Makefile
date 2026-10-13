@@ -6,11 +6,11 @@ INSTALLED_LIBRARIES := hap
 
 C++_FLAGS := -Wno-nonportable-include-path
 
-hap[HEADERS] := coin.h deck.h dice.h die.h estimate.h playing-cards.h	    \
-  random.h stack.h
+hap[HEADERS] := coin.h deck.h dice.h die.h estimate.h log-combinatorics.h   \
+  playing-cards.h random.h select.h stack.h
 
-hap[SRCS] := coin.cc deck.cc dice.cc die.cc estimate.cc playing-cards.cc   \
-  random.cc stack.cc
+hap[SRCS] := coin.cc deck.cc dice.cc die.cc estimate.cc			    \
+  log-combinatorics.cc playing-cards.cc random.cc select.cc stack.cc
 
 hap[LIBS] := -lnyx
 

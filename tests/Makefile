@@ -6,8 +6,8 @@ all: check
 
 TEST_LIBS := -lhap
 
-PRODUCTS := coin deck dice die estimate game playing-cards random reroll   \
-  stack
+PRODUCTS := coin deck dice die estimate game log-combinatorics		    \
+  playing-cards random reroll select stack
 
 C++_FLAGS := -Wno-nonportable-include-path
 
@@ -18,8 +18,8 @@ LIBS := -lnyx
 # checked by scripts, which compare their output with what's expected,
 # using the shared code in check-common.
 
-TEST_PROGRAMS := random die coin dice stack deck playing-cards game-check  \
-  estimate reroll-check
+TEST_PROGRAMS := random select log-combinatorics die coin dice stack deck   \
+  playing-cards game-check estimate reroll-check
 
 include makefiles/base.make
 

@@ -26,8 +26,9 @@
    create the objects it uses and must not change anything shared between
    trials. */
 
-#include <hap/random.h>
 #include <cstdint>
+#include <memory>
+#include <type_traits>
 
 namespace hap {
 
@@ -35,6 +36,7 @@ class estimator
 {
 public:
   class result;
+  class scenario;
 
   /* Pass to `estimator(unsigned int)' to use the max number of threads
      allowed on the system. */
@@ -51,17 +53,13 @@ public:
   /* Return the number of threads this estimator uses. */
   unsigned int thread_count() const;
 
-  /* Run `count' trials of `scenario' and estimate the probability that it
-     returns true. `count' must be nonzero. If there are fewer trials than
-     threads, use only as many threads as there are trials. */
-  template<typename Scenario> result estimate(uint64_t count,
-    const Scenario& scenario);
+  /* Run `count' trials of `s' and estimate the probability that it returns
+     true. `count' must be nonzero. If there are fewer trials than threads,
+     use only as many threads as there are trials. */
+  result estimate(uint64_t count, scenario s) const;
 
 private:
   unsigned int thread_count_ = 1;
-
-  template<typename Scenario> static uint64_t run_trials(const Scenario&,
-    const internal::seed_state&, uint64_t, uint64_t);
 };
 
 /* The outcome of a simulation. */
@@ -81,82 +79,65 @@ private:
   result(uint64_t, uint64_t);
 };
 
+/* A reference to a scenario, made implicitly from a lambda, a function
+   object, or a function. Like std::function_ref<bool() const>, which can
+   replace it once it's available, it refers to the scenario without owning
+   it, so the scenario must outlive it; passing a scenario directly to
+   estimate() always satisfies this. */
+
+class estimator::scenario
+{
+public:
+  /* Refer to `f', which must take no arguments, return a value convertible
+     to bool, and not modify its captures. A function must return bool. */
+  template<typename F>
+    requires (!std::is_same_v<std::remove_cvref_t<F>, scenario>)
+  scenario(const F& f);
+
+  /* Play out one trial and return true if it succeeded. */
+  bool operator()() const;
+
+private:
+  /* What the scenario refers to: a function object, or a function. */
+  union target
+  {
+    const void* object;
+    bool (*function)();
+  };
+
+  target target_ = {};
+  bool (*call_)(target) = nullptr;	/* Calls `target_'. */
+};
+
 } /* namespace hap */
 
 /* Implementation. */
 
-#include <nyx/utility.h>
-#include <algorithm>
-#include <exception>
-#include <thread>
-#include <type_traits>
-#include <vector>
-
-template<typename Scenario>
-auto
-hap::estimator::estimate(uint64_t trials, const Scenario& scenario) -> result
+template<typename F>
+  requires (!std::is_same_v<std::remove_cvref_t<F>, hap::estimator::scenario>)
+hap::estimator::scenario::scenario(const F& f)
 {
-  static_assert(std::is_invocable_r_v<bool, const Scenario&>,
+  static_assert(std::is_invocable_r_v<bool, const F&>,
     "a scenario takes no arguments, returns bool, and must not "
     "modify its captures");
 
-  NYX_PRECONDITION(trials > 0);
-
-  const auto n = std::clamp<uint64_t>(thread_count(), 1, trials);
-  const auto s = internal::current_seed();
-
-  if (n == 1) {
-    internal::preserve_state saved;
-    return result(trials, run_trials(scenario, s, 0, trials));
+  if constexpr (std::is_function_v<F>) {
+    static_assert(std::is_convertible_v<F*, bool (*)()>,
+      "a function used as a scenario must return bool");
+    target_.function = &f;
+    call_ = [](target t) { return t.function(); };
+  } else {
+    target_.object = std::addressof(f);
+    call_ = [](target t) -> bool {
+      return (*static_cast<const F*>(t.object))();
+    };
   }
-
-  /* Divide the trials into `n' blocks whose sizes differ by at most 1. The
-     workers join when `workers' is destroyed or earlier if creating a
-     thread throws. */
-
-  std::vector<uint64_t> successes(n);
-  std::vector<std::exception_ptr> exceptions(n);
-  {
-    std::vector<std::jthread> workers;
-    const auto size = trials / n;
-    const auto extra = trials % n;
-    for (uint64_t k = 0, first = 0; k < n; ++k) {
-      const auto last = first + size + (k < extra ? 1 : 0);
-      workers.emplace_back([&, k, first, last] {
-	try {
-	  successes[k] = run_trials(scenario, s, first, last);
-	} catch (...) {
-	  exceptions[k] = std::current_exception();
-	}
-      });
-      first = last;
-    }
-  }
-  for (const auto& exception : exceptions) {
-    if (exception != nullptr)
-      std::rethrow_exception(exception);
-  }
-  uint64_t total = 0;
-  for (auto k : successes)
-    total += k;
-  return result(trials, total);
 }
 
-/* Run trials [first, last) of `scenario' and return the number of
-   successes. */
-
-template<typename Scenario>
-uint64_t
-hap::estimator::run_trials(const Scenario& scenario,
-  const internal::seed_state& s, uint64_t first, uint64_t last)
+inline bool
+hap::estimator::scenario::operator()() const
 {
-  uint64_t successes = 0;
-  for (auto k = first; k != last; ++k) {
-    start_trial(s, k);
-    if (scenario())
-      ++successes;
-  }
-  return successes;
+  return call_(target_);
 }
 
 #endif /* HAP_ESTIMATE_H_ */
