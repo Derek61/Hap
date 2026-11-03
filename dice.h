@@ -7,7 +7,6 @@
 
 #include <hap/die.h>
 #include <nyx/static-vector.h>
-#include <cstddef>
 
 namespace hap {
 
@@ -57,7 +56,7 @@ public:
   auto end() const;
 
 private:
-  nyx::static_vector<die, capacity> set;
+  nyx::static_vector<die, capacity> set_;
 };
 
 } /* namespace hap */
@@ -69,26 +68,26 @@ private:
 
 inline
 hap::dice::dice(size_t count)
-  : set(count)
+  : set_(count)
 {
 }
 
 inline
 hap::dice::dice(size_t count, unsigned int sides)
-  : set(count, die{sides})
+  : set_(count, die{sides})
 {
 }
 
 inline size_t
 hap::dice::count() const
 {
-  return set.size();
+  return set_.size();
 }
 
 inline unsigned int
 hap::dice::roll()
 {
-  for (auto& d : set)
+  for (auto& d : set_)
     d.roll();
   return sum();
 }
@@ -97,7 +96,7 @@ inline unsigned int
 hap::dice::sum() const
 {
   unsigned int s = 0;
-  for (const auto& d : set)
+  for (const auto& d : set_)
     s += d.value();
   return s;
 }
@@ -107,15 +106,15 @@ hap::dice::sum() const
 inline auto
 hap::dice::lowest() -> die&
 {
-  NYX_PRECONDITION(!set.empty());
-  return *std::ranges::min_element(set, {}, &die::value);
+  NYX_PRECONDITION(!set_.empty());
+  return *std::ranges::min_element(set_, {}, &die::value);
 }
 
 inline auto
 hap::dice::lowest() const -> const die&
 {
-  NYX_PRECONDITION(!set.empty());
-  return *std::ranges::min_element(set, {}, &die::value);
+  NYX_PRECONDITION(!set_.empty());
+  return *std::ranges::min_element(set_, {}, &die::value);
 }
 
 /* std::ranges::max_element returns the first of equal elements. */
@@ -123,53 +122,53 @@ hap::dice::lowest() const -> const die&
 inline auto
 hap::dice::highest() -> die&
 {
-  NYX_PRECONDITION(!set.empty());
-  return *std::ranges::max_element(set, {}, &die::value);
+  NYX_PRECONDITION(!set_.empty());
+  return *std::ranges::max_element(set_, {}, &die::value);
 }
 
 inline auto
 hap::dice::highest() const -> const die&
 {
-  NYX_PRECONDITION(!set.empty());
-  return *std::ranges::max_element(set, {}, &die::value);
+  NYX_PRECONDITION(!set_.empty());
+  return *std::ranges::max_element(set_, {}, &die::value);
 }
 
 inline auto
 hap::dice::operator[](size_t k) -> die&
 {
-  NYX_PRECONDITION(k < set.size());
-  return set[k];
+  NYX_PRECONDITION(k < set_.size());
+  return set_[k];
 }
 
 inline auto
 hap::dice::operator[](size_t k) const -> const die&
 {
-  NYX_PRECONDITION(k < set.size());
-  return set[k];
+  NYX_PRECONDITION(k < set_.size());
+  return set_[k];
 }
 
 inline auto
 hap::dice::begin()
 {
-  return set.begin();
+  return set_.begin();
 }
 
 inline auto
 hap::dice::end()
 {
-  return set.end();
+  return set_.end();
 }
 
 inline auto
 hap::dice::begin() const
 {
-  return set.begin();
+  return set_.begin();
 }
 
 inline auto
 hap::dice::end() const
 {
-  return set.end();
+  return set_.end();
 }
 
 #endif /* HAP_DICE_H_ */

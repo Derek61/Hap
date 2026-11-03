@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
+#include <chrono>
 #include <cmath>
 #include <cstdint>
 #include <cstdio>
@@ -154,6 +155,22 @@ check_falling_factorial()
 
   assert(is_close(hap::log_falling_factorial(max, 3),
     direct_log_falling_factorial(max, 3)));
+
+  /* With r = 2^32 + 1, r * r overflows to 2^33 + 1, which is much less than
+     x = 2^63, so a test of r * r >= x would wrongly sum more than 4 billion
+     logs, taking many seconds. The result is checked against
+     r log x - r (r - 1) / (2x), the first terms of the sum of
+     log (x - i) = log x + log (1 - i / x). */
+  const uint64_t x = uint64_t{1} << 63;
+  const uint64_t r = (uint64_t{1} << 32) + 1;
+  const auto xd = static_cast<double>(x);
+  const auto rd = static_cast<double>(r);
+  const auto start = std::chrono::steady_clock::now();
+  const double v = hap::log_falling_factorial(x, r);
+  const auto elapsed = std::chrono::steady_clock::now() - start;
+  assert(elapsed < std::chrono::seconds{1});
+  assert(is_close(v, rd * std::log(xd) - rd * (rd - 1) / (2 * xd),
+    tolerance(x)));
 }
 
 /* log C(n, k) matches Pascal's triangle wherever it fits in 64 bits, is

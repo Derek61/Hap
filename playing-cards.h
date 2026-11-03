@@ -92,7 +92,7 @@ struct std::formatter<hap::playing_card::Rank> : std::formatter<std::string>
     case Queen: format_to(out, "Q"); break;
     case Jack:  format_to(out, "J"); break;
     case Ten:   format_to(out, "T"); break;
-    default: format_to(out, "{}", static_cast<unsigned int>(rank)); break;
+    default:    format_to(out, "{}", static_cast<unsigned int>(rank)); break;
     }
     return out;
   }

@@ -20,7 +20,7 @@ class stack
 public:
   stack() = default;
   stack(const std::initializer_list<Card>& cards);
-  template<typename Iterator> stack(Iterator begin, Iterator end);
+  template<std::input_iterator Iterator> stack(Iterator begin, Iterator end);
 
   /* Return true if the stack is empty; false otherwise. */
   bool empty() const;
@@ -28,7 +28,7 @@ public:
   /* Return the number of cards in the stack. */
   size_t count() const;
 
-  /* Look at the card on the top of the stack. */
+  /* Peek at the card on the top of the stack. */
   Card top() const;
 
   /* Deal the card from the top of the stack, reducing the number of cards
@@ -46,14 +46,14 @@ public:
   void discard_all();
 
   /* Add a card to the top of the stack. */
-  void add_to_top(Card c);
+  void add_to_top(Card card);
 
   /* Add a stack of cards to the top of the stack. */
   void add_to_top(stack&& cards);
   void add_to_top(const stack& cards);
 
   /* Add a card to the bottom of the stack. */
-  void add_to_bottom(Card c);
+  void add_to_bottom(Card card);
 
   /* Add a stack of cards to the bottom of the stack. */
   void add_to_bottom(stack&& cards);
@@ -74,8 +74,11 @@ public:
   auto rend() const;
 
 private:
-  std::deque<Card> cards;
+  std::deque<Card> cards_;
 };
+
+template<std::input_iterator Iterator> stack(Iterator, Iterator) ->
+  stack<typename std::iterator_traits<Iterator>::value_type>;
 
 } /* namespace hap */
 
@@ -93,9 +96,9 @@ hap::stack<Card>::stack(const std::initializer_list<Card>& s)
 }
 
 template<typename Card>
-template<typename Iterator>
+template<std::input_iterator Iterator>
 hap::stack<Card>::stack(Iterator begin, Iterator end)
-  : cards{begin, end}
+  : cards_{begin, end}
 {
 }
 
@@ -103,23 +106,23 @@ template<typename Card>
 bool
 hap::stack<Card>::empty() const
 {
-  return cards.empty();
+  return cards_.empty();
 }
 
 template<typename Card>
 size_t
 hap::stack<Card>::count() const
 {
-  return cards.size();
+  return cards_.size();
 }
 
 template<typename Card>
 Card
 hap::stack<Card>::top() const
 {
-  if (cards.empty())
+  if (cards_.empty())
     throw nyx::exception("not enough cards");
-  return cards.front();
+  return cards_.front();
 }
 
 template<typename Card>
@@ -127,7 +130,7 @@ Card
 hap::stack<Card>::deal_one_card()
 {
   auto card = top();
-  cards.pop_front();
+  cards_.pop_front();
   return card;
 }
 
@@ -137,11 +140,12 @@ hap::stack<Card>::deal(size_t n)
 {
   if (n > count())
     throw nyx::exception("not enough cards");
-  auto t = cards.begin();
+
   using diff_t = typename std::deque<Card>::difference_type;
+  auto t = cards_.begin();
   auto e = std::next(t, static_cast<diff_t>(n));
   stack<Card> hand{t, e};
-  cards.erase(t, e);
+  cards_.erase(t, e);
   return hand;
 }
 
@@ -151,31 +155,32 @@ hap::stack<Card>::discard(size_t n)
 {
   if (n > count())
     throw nyx::exception("not enough cards");
-  auto t = cards.begin();
+
   using diff_t = typename std::deque<Card>::difference_type;
+  auto t = cards_.begin();
   auto e = std::next(t, static_cast<diff_t>(n));
-  cards.erase(t, e);
+  cards_.erase(t, e);
 }
 
 template<typename Card>
 void
 hap::stack<Card>::discard_all()
 {
-  cards.clear();
+  cards_.clear();
 }
 
 template<typename Card>
 void
-hap::stack<Card>::add_to_top(Card c)
+hap::stack<Card>::add_to_top(Card card)
 {
-  cards.push_front(c);
+  cards_.push_front(card);
 }
 
 template<typename Card>
 void
 hap::stack<Card>::add_to_top(stack&& s)
 {
-  std::move(s.cards.rbegin(), s.cards.rend(), std::front_inserter(cards));
+  std::move(s.rbegin(), s.rend(), std::front_inserter(cards_));
   s.discard_all();
 }
 
@@ -183,21 +188,21 @@ template<typename Card>
 void
 hap::stack<Card>::add_to_top(const stack& s)
 {
-  std::copy(s.rbegin(), s.rend(), std::front_inserter(cards));
+  std::copy(s.rbegin(), s.rend(), std::front_inserter(cards_));
 }
 
 template<typename Card>
 void
-hap::stack<Card>::add_to_bottom(Card c)
+hap::stack<Card>::add_to_bottom(Card card)
 {
-  cards.push_back(c);
+  cards_.push_back(card);
 }
 
 template<typename Card>
 void
 hap::stack<Card>::add_to_bottom(stack&& s)
 {
-  std::move(s.cards.begin(), s.cards.end(), std::back_inserter(cards));
+  std::move(s.begin(), s.end(), std::back_inserter(cards_));
   s.discard_all();
 }
 
@@ -205,7 +210,7 @@ template<typename Card>
 void
 hap::stack<Card>::add_to_bottom(const stack& s)
 {
-  std::copy(s.begin(), s.end(), std::back_inserter(cards));
+  std::copy(s.begin(), s.end(), std::back_inserter(cards_));
 }
 
 template<typename Card>
@@ -214,42 +219,42 @@ hap::stack<Card>::operator[](size_t index) const
 {
   if (index >= count())
     throw nyx::exception("not enough cards");
-  return cards[index];
+  return cards_[index];
 }
 
 template<typename Card>
 void
 hap::stack<Card>::shuffle()
 {
-  internal::shuffle(cards.begin(), cards.end());
+  internal::shuffle(cards_.begin(), cards_.end());
 }
 
 template<typename Card>
 auto
 hap::stack<Card>::begin() const
 {
-  return cards.cbegin();
+  return cards_.cbegin();
 }
 
 template<typename Card>
 auto
 hap::stack<Card>::end() const
 {
-  return cards.cend();
+  return cards_.cend();
 }
 
 template<typename Card>
 auto
 hap::stack<Card>::rbegin() const
 {
-  return cards.crbegin();
+  return cards_.crbegin();
 }
 
 template<typename Card>
 auto
 hap::stack<Card>::rend() const
 {
-  return cards.crend();
+  return cards_.crend();
 }
 
 #endif /* HAP_STACK_H_ */

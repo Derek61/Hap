@@ -20,7 +20,7 @@ public:
   /* Toss the coin and return the face that's up. */
   Face toss();
 
-  /* Return the face showing after a flip. */
+  /* Return the face that's up. */
   Face face() const;
 
   /* Return true if the coin shows heads; false otherwise. */

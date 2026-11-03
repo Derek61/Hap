@@ -6,7 +6,6 @@
 #define HAP_DECK_H_
 
 #include <hap/stack.h>
-#include <cstddef>
 #include <initializer_list>
 #include <iterator>
 #include <ranges>
@@ -20,7 +19,7 @@ class deck
 public:
   deck(const std::vector<Card>& cards);
   deck(const std::initializer_list<Card>& cards);
-  template<typename Iterator> deck(Iterator begin, Iterator end);
+  template<std::input_iterator Iterator> deck(Iterator begin, Iterator end);
 
   /* Return the number of cards in the entire deck. */
   size_t size() const;
@@ -32,7 +31,7 @@ public:
   /* Return the number of undealt cards remaining in the deck. */
   size_t remaining_cards() const;
 
-  /* Look at the card on the top of the deck. */
+  /* Peek at the card on the top of the deck. */
   Card top() const;
 
   /* Deal the card from the top of the deck, reducing the number of cards in
@@ -47,7 +46,7 @@ public:
   void discard(size_t n);
 
   /* Add a card to the bottom of the deck. */
-  void add_to_bottom(Card c);
+  void add_to_bottom(Card card);
 
   /* Add a stack of cards to the bottom of the deck. */
   void add_to_bottom(stack<Card>&& cards);
@@ -65,10 +64,10 @@ public:
 
 private:
   std::vector<Card> cards_;	/* The set of all cards. */
-  stack<Card> undealt_ = { cards_.begin(), cards_.end() };
+  stack<Card> undealt_ = {cards_.begin(), cards_.end()};
 };
 
-template<typename Iterator> deck(Iterator, Iterator) ->
+template<std::input_iterator Iterator> deck(Iterator, Iterator) ->
   deck<typename std::iterator_traits<Iterator>::value_type>;
 
 } /* namespace hap */
@@ -77,7 +76,7 @@ template<typename Iterator> deck(Iterator, Iterator) ->
    all its cards, so it must not be treated as a sized range. */
 
 template<typename Card>
-constexpr bool std::ranges::disable_sized_range<hap::deck<Card>> = true;
+  constexpr bool std::ranges::disable_sized_range<hap::deck<Card>> = true;
 
 /* Implementation. */
 
@@ -98,7 +97,7 @@ hap::deck<Card>::deck(const std::initializer_list<Card>& cards)
 }
 
 template<typename Card>
-template<typename Iterator>
+template<std::input_iterator Iterator>
 hap::deck<Card>::deck(Iterator begin, Iterator end)
   : cards_{begin, end}
 {
@@ -178,7 +177,7 @@ template<typename Card>
 void
 hap::deck<Card>::reset()
 {
-  undealt_ = { cards_.begin(), cards_.end() };
+  undealt_ = {cards_.begin(), cards_.end()};
 }
 
 template<typename Card>

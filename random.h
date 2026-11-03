@@ -5,8 +5,8 @@
 #ifndef HAP_RANDOM_H_
 #define HAP_RANDOM_H_
 
-/* Hap's source of randomness. Each thread has its own small engine, which
-   every die, coin, and stack on that thread draws from; no object holds an
+/* The source of randomness for the library. Each thread has its own small
+   engine, which every object on that thread draws from; no object holds an
    engine of its own. Every engine is derived from a single global seed, so
    setting the seed makes a run repeatable. */
 
@@ -89,7 +89,7 @@ uint64_t uniform(uint64_t n);
 
 /* Shuffle [first, last) uniformly. */
 template<std::random_access_iterator Iterator>
-void shuffle(Iterator first, Iterator last);
+  void shuffle(Iterator first, Iterator last);
 
 /* Save the calling thread's state, and restore it on destruction. */
 

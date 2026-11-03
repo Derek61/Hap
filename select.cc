@@ -21,13 +21,13 @@ hap::shuffle(unsigned int n)
 }
 
 /* Count the values in [n, m] in 64 bits, since there are 2^32 of them when
-   `n' is 0 and `m' is the largest unsigned int. */
+   `n' is 0 and `m' is 2^32 - 1. */
 
 unsigned int
 hap::select_one(unsigned int n, unsigned int m)
 {
   NYX_PRECONDITION(n <= m);
-  const uint64_t count = uint64_t{m} - n + 1;
+  const uint64_t count = static_cast<uint64_t>(m) - n + 1;
   return n + static_cast<unsigned int>(internal::uniform(count));
 }
 
@@ -57,9 +57,7 @@ hap::select_without_replacement(unsigned int k, unsigned int n)
   /* For each j from n - k + 1 to n, choose t from [1, j]; take t if it
      hasn't been chosen yet, and j otherwise. */
   std::vector<unsigned int> chosen;
-  chosen.reserve(k);
   std::unordered_set<unsigned int> seen;
-  seen.reserve(k);
   for (unsigned int i = 0; i < k; ++i) {
     const unsigned int j = n - k + 1 + i;
     const auto t = select_one(1, j);
@@ -74,7 +72,7 @@ hap::select_without_replacement(unsigned int k, unsigned int n)
 std::vector<unsigned int>
 hap::select_with_replacement(unsigned int k, unsigned int n)
 {
-  NYX_PRECONDITION(n > 0 || k == 0);
+  NYX_PRECONDITION(n > 0 || (n == 0 && k == 0));
 
   std::vector<unsigned int> elements(k);
   for (auto& element : elements)
