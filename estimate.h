@@ -53,10 +53,9 @@ public:
   /* Return the number of threads this estimator uses. */
   unsigned int thread_count() const;
 
-  /* Run `count' trials of `s' and estimate the probability that it returns
-     true. `count' must be nonzero. If there are fewer trials than threads,
-     use only as many threads as there are trials. */
-  result estimate(uint64_t count, scenario s) const;
+  /* Run `count' trials of `scenario' and estimate the probability that it
+     returns true. `count' must be nonzero. */
+  result estimate(uint64_t count, scenario scenario) const;
 
 private:
   unsigned int thread_count_ = 1;
@@ -67,44 +66,43 @@ private:
 class estimator::result
 {
 public:
+  result() = default;
+
   uint64_t trials = 0;		/* The number of trials run. */
   uint64_t successes = 0;	/* The number of successful trials. */
   double probability = 0;	/* Estimated probability of success. */
   double standard_error = 0;	/* Standard error of the estimate. */
-
-  result() = default;
 
 private:
   friend class estimator;
   result(uint64_t, uint64_t);
 };
 
-/* A reference to a scenario, made implicitly from a lambda, a function
-   object, or a function. Like std::function_ref<bool() const>, which can
-   replace it once it's available, it refers to the scenario without owning
-   it, so the scenario must outlive it; passing a scenario directly to
-   estimate() always satisfies this. */
+/* A scenario, created implicitly from a lambda, a function object, or a
+   function. Like std::function_ref<bool() const> (which can replace it once
+   it's available), it refers to the scenario without owning it, so the
+   scenario must outlive it; passing a scenario directly to estimate()
+   always satisfies this. */
 
 class estimator::scenario
 {
 public:
-  /* Refer to `f', which must take no arguments, return a value convertible
-     to bool, and not modify its captures. A function must return bool. */
+  /* Create a scenario using `f', which must take no arguments, return a
+     value convertible to bool, and not modify its captures. */
   template<typename F>
     requires (!std::is_same_v<std::remove_cvref_t<F>, scenario>)
-  scenario(const F& f);
+      scenario(const F& f);
 
-  /* Play out one trial and return true if it succeeded. */
+  /* Run one trial and return true on success. */
   bool operator()() const;
 
 private:
-  /* What the scenario refers to: a function object, or a function. */
+  /* What the scenario refers to: either a function object or a function. */
   union target
   {
     const void* object;
     bool (*function)();
   };
-
   target target_ = {};
   bool (*call_)(target) = nullptr;	/* Calls `target_'. */
 };
@@ -118,12 +116,12 @@ template<typename F>
 hap::estimator::scenario::scenario(const F& f)
 {
   static_assert(std::is_invocable_r_v<bool, const F&>,
-    "a scenario takes no arguments, returns bool, and must not "
+    "A scenario should take no arguments, return bool, and must not "
     "modify its captures");
 
   if constexpr (std::is_function_v<F>) {
     static_assert(std::is_convertible_v<F*, bool (*)()>,
-      "a function used as a scenario must return bool");
+      "A function used as a scenario must return bool");
     target_.function = &f;
     call_ = [](target t) { return t.function(); };
   } else {
