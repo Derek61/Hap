@@ -14,13 +14,16 @@ class coin
 public:
   enum Face : unsigned char { Heads, Tails };
 
-  /* Create a coin showing heads. */
-  coin() = default;
+  /* Create a coin and toss it. */
+  coin();
+
+  /* Create a coin showing `face'. */
+  explicit coin(Face face);
 
   /* Toss the coin and return the face that's up. */
   Face toss();
 
-  /* Return the face that's up. */
+  /* Return the face of the coin that's up. */
   Face face() const;
 
   /* Return true if the coin shows heads; false otherwise. */
@@ -30,12 +33,24 @@ public:
   bool tails() const;
 
 private:
-  Face face_ = Face::Heads;
+  Face face_;			/* The face that's up. */
 };
 
 } /* namespace hap */
 
 /* Implementation. */
+
+inline
+hap::coin::coin()
+{
+  toss();
+}
+
+inline
+hap::coin::coin(Face face)
+  : face_{face}
+{
+}
 
 inline auto
 hap::coin::toss() -> Face
