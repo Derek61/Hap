@@ -18,12 +18,12 @@ public:
   /* The largest number of dice in a set. */
   static constexpr size_t capacity = 32;
 
-  /* Create a set of `count' 6-sided dice. Throw `std::bad_alloc' if `count'
-     exceeds `capacity'. */
+  /* Create a set of `count' 6-sided dice and roll them. Throw
+     `std::bad_alloc' if `count' exceeds `capacity'. */
   explicit dice(size_t count);
 
-  /* Create a set of `count' dice, each with `sides' sides. Throw
-     `std::bad_alloc' if `count' exceeds `capacity'. */
+  /* Create a set of `count' dice, each with `sides' sides, and roll them.
+     Throw `std::bad_alloc' if `count' exceeds `capacity'. */
   dice(size_t count, unsigned int sides);
 
   /* Return the number of dice in this set. */
@@ -68,14 +68,18 @@ private:
 
 inline
 hap::dice::dice(size_t count)
-  : set_(count)
+  : dice{count, 6}
 {
 }
 
+/* Copying a rolled die would give every die the same value, so copy a die
+   showing 1, then roll them all. */
+
 inline
 hap::dice::dice(size_t count, unsigned int sides)
-  : set_(count, die{sides})
+  : set_(count, die{sides, 1})
 {
+  roll();
 }
 
 inline size_t
