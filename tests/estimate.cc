@@ -50,7 +50,7 @@ bool
 reroll()
 {
   hap::dice d{2};
-  const auto before = d.roll();
+  const auto before = d.sum();
   hap::coin c;
   auto& die = c.toss() == hap::coin::Heads ? d.lowest() : d.highest();
   die.roll();
@@ -63,7 +63,7 @@ bool
 seven()
 {
   hap::dice d{2};
-  return d.roll() == 7;
+  return d.sum() == 7;
 }
 
 /* Return true if the estimate in `r' is within 5 standard errors of

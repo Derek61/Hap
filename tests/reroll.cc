@@ -71,7 +71,7 @@ main(int argc, char** argv)
   auto scenario = []
   {
     hap::dice d{2};
-    const auto before = d.roll();
+    const auto before = d.sum();
     hap::coin c;
     auto& die = c.toss() == Heads ? d.lowest() : d.highest();
     die.roll();

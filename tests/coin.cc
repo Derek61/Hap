@@ -47,14 +47,21 @@ is_plausible(int k, int trials, double p)
   return std::abs(k - mean) <= 5 * sd;
 }
 
-/* A new coin shows heads, and every query agrees with the last toss. */
+/* A coin can be created showing either face, and every query agrees with
+   the last toss. */
 
 void
 check_faces()
 {
+  const coin h{coin::Heads};
+  assert(h.face() == coin::Heads);
+  assert(h.heads() && !h.tails());
+  const coin t{coin::Tails};
+  assert(t.face() == coin::Tails);
+  assert(t.tails() && !t.heads());
+
   coin c;
-  assert(c.face() == coin::Heads);
-  assert(c.heads() && !c.tails());
+  assert(c.heads() != c.tails());
   for (int k = 0; k < 1000; ++k) {
     const auto f = c.toss();
     assert(f == c.face());
@@ -62,6 +69,17 @@ check_faces()
     assert(c.tails() == (f == coin::Tails));
     assert(c.heads() != c.tails());
   }
+}
+
+/* A new coin has been tossed: about half of new coins show heads. */
+
+void
+check_initial_toss()
+{
+  int heads = 0;
+  for (int k = 0; k < n; ++k)
+    heads += coin{}.heads() ? 1 : 0;
+  assert(is_plausible(heads, n, 0.5));
 }
 
 /* About half the tosses are heads. */
@@ -96,20 +114,22 @@ check_pairs()
 }
 
 /* Separate coins on one thread share its sequence: tossing two coins in
-   turn gives the same faces as tossing one coin twice as often. */
+   turn gives the same faces as tossing one coin twice as often. The coins
+   are created before the seed is set, so their initial tosses don't
+   count. */
 
 void
 check_shared_sequence()
 {
-  hap::seed(3);
   coin c;
+  hap::seed(3);
   std::vector<coin::Face> one;
   for (int k = 0; k < 200; ++k)
     one.push_back(c.toss());
 
-  hap::seed(3);
   coin a;
   coin b;
+  hap::seed(3);
   for (size_t k = 0; k < 200; k += 2) {
     assert(a.toss() == one[k]);
     assert(b.toss() == one[k + 1]);
@@ -137,6 +157,7 @@ void
 run_tests()
 {
   check_faces();
+  check_initial_toss();
   check_balance();
   check_pairs();
   check_shared_sequence();

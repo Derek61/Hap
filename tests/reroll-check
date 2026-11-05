@@ -16,22 +16,22 @@ checking "the reroll simulation."
 
 check_output reroll --seed 1 --trials 100000 --threads 4 <<EOF
 Seed: 1
- 1 threads: 0.418760 ± 0.001560
- 4 threads: 0.418760 ± 0.001560
+ 1 threads: 0.418350 ± 0.001560
+ 4 threads: 0.418350 ± 0.001560
 Exact:      0.416667
 EOF
 
 check_output reroll --seed 1 --trials 100000 --threads 3 <<EOF
 Seed: 1
- 1 threads: 0.418760 ± 0.001560
- 3 threads: 0.418760 ± 0.001560
+ 1 threads: 0.418350 ± 0.001560
+ 3 threads: 0.418350 ± 0.001560
 Exact:      0.416667
 EOF
 
 check_output reroll -s 2 -n 1000003 -t 7 <<EOF
 Seed: 2
- 1 threads: 0.417070 ± 0.000493
- 7 threads: 0.417070 ± 0.000493
+ 1 threads: 0.416893 ± 0.000493
+ 7 threads: 0.416893 ± 0.000493
 Exact:      0.416667
 EOF
 

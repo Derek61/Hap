@@ -9,6 +9,10 @@
 
 namespace hap {
 
+/** Maybe add
+    template<unsigned int N> std::array<unsigned int,N> shuffle();
+**/
+
 /* Return a shuffled set of elements from `1' to `n'. */
 std::vector<unsigned int> shuffle(unsigned int n);
 

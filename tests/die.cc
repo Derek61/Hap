@@ -46,18 +46,41 @@ is_plausible(int k, int trials, double p)
   return std::abs(k - mean) <= 5 * sd;
 }
 
-/* A default die has 6 sides and hasn't been rolled. */
+/* A default die has 6 sides. A new die has been rolled, so it shows a
+   value in [1, sides], unless it was given a value to show. */
 
 void
-check_defaults()
+check_construction()
 {
   die d;
   assert(d.sides() == 6);
-  assert(d.value() == 0);
+  assert(d.value() >= 1 && d.value() <= 6);
 
   die d20{20};
   assert(d20.sides() == 20);
-  assert(d20.value() == 0);
+  assert(d20.value() >= 1 && d20.value() <= 20);
+
+  die shown{20, 17};
+  assert(shown.sides() == 20);
+  assert(shown.value() == 17);
+  const auto v = shown.roll();
+  assert(v >= 1 && v <= 20);
+  assert(shown.value() == v);
+}
+
+/* The value a new die shows is uniform, so each die is rolled when it's
+   created rather than given a fixed value. */
+
+void
+check_initial_roll()
+{
+  for (unsigned int sides : {6u, 7u}) {
+    std::vector<int> counts(sides);
+    for (int k = 0; k < n; ++k)
+      ++counts[die{sides}.value() - 1];
+    for (int count : counts)
+      assert(is_plausible(count, n, 1.0 / sides));
+  }
 }
 
 /* Every roll is in [1, sides], and value() reports the last roll. */
@@ -123,7 +146,8 @@ check_seeding()
 void
 run_tests()
 {
-  check_defaults();
+  check_construction();
+  check_initial_roll();
   check_range();
   check_uniformity();
   check_copy();

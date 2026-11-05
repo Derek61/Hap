@@ -75,7 +75,7 @@ total(const dice& d)
 }
 
 /* A set holds the requested number of dice, each with the requested number
-   of sides, none rolled yet. */
+   of sides, already rolled. */
 
 void
 check_construction()
@@ -84,14 +84,17 @@ check_construction()
   assert(d.count() == 3);
   for (const auto& x : d) {
     assert(x.sides() == 6);
-    assert(x.value() == 0);
+    assert(x.value() >= 1 && x.value() <= 6);
   }
-  assert(d.sum() == 0);
+  assert(d.sum() == total(d));
 
   dice e{5, 20};
   assert(e.count() == 5);
-  for (const auto& x : e)
+  for (const auto& x : e) {
     assert(x.sides() == 20);
+    assert(x.value() >= 1 && x.value() <= 20);
+  }
+  assert(e.sum() == total(e));
 
   dice none{0};
   assert(none.count() == 0);
@@ -188,6 +191,25 @@ check_distribution()
   }
 }
 
+/* The dice in a new set are rolled independently: the sum of a new set of
+   two dice has the triangular distribution. Rolling one die and copying it
+   would give only even sums. */
+
+void
+check_initial_roll()
+{
+  for (auto make : {+[] { return dice{2}; }, +[] { return dice{2, 6}; }}) {
+    std::array<int, 13> counts = {};
+    for (int k = 0; k < n; ++k)
+      ++counts[make().sum()];
+    assert(counts[0] == 0 && counts[1] == 0);
+    for (int s = 2; s <= 12; ++s) {
+      const double p = (6 - std::abs(s - 7)) / 36.0;
+      assert(is_plausible(counts[static_cast<size_t>(s)], n, p));
+    }
+  }
+}
+
 /* Equal seeds give equal rolls. */
 
 void
@@ -214,5 +236,6 @@ run_tests()
   check_extremes();
   check_iteration();
   check_distribution();
+  check_initial_roll();
   check_seeding();
 }

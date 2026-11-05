@@ -13,7 +13,7 @@
      auto r = e.estimate(1'000'000, []
      {
        hap::dice d{2};
-       return d.roll() == 7;
+       return d.sum() == 7;
      });
 
    To spread the trials over several threads, construct the estimator
