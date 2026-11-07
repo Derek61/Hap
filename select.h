@@ -9,9 +9,8 @@
 
 namespace hap {
 
-/** Maybe add
-    template<unsigned int N> std::array<unsigned int,N> shuffle();
-**/
+/* Return a shuffled set of elements from `1' to `N'. */
+template<unsigned int N> std::array<unsigned int,N> shuffle();
 
 /* Return a shuffled set of elements from `1' to `n'. */
 std::vector<unsigned int> shuffle(unsigned int n);
@@ -30,5 +29,20 @@ std::vector<unsigned int> select_with_replacement(unsigned int k,
   unsigned int n);
 
 } /* namespace hap */
+
+/* Implementation. */
+
+#include <numeric>
+#include <hap/random.h>
+
+template<unsigned int N>
+std::array<unsigned int,N>
+hap::shuffle()
+{
+  std::array<unsigned int,N> elements;
+  std::iota(elements.begin(), elements.end(), 1u);
+  internal::shuffle(elements.begin(), elements.end());
+  return elements;
+}
 
 #endif /* HAP_SELECT_H_ */

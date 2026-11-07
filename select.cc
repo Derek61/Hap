@@ -7,7 +7,6 @@
 #include <nyx/utility.h>
 #include <cstddef>
 #include <cstdint>
-#include <numeric>
 #include <unordered_set>
 #include <utility>
 
